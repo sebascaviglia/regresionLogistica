@@ -1,39 +1,50 @@
-# History files
-.Rhistory
-.Rapp.history
+---
+title: "R Notebook"
+output: html_notebook
+---
 
-# Session Data files
-.RData
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
-# User-specific files
-.Ruserdata
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
-# Example code in package build process
-*-Ex.R
+```{r}
+#instalamos librerias
+library(caret)
 
-# Output files from R CMD build
-/*.tar.gz
+#cargamos los datos
 
-# Output files from R CMD check
-/*.Rcheck/
+bh <- read.csv("../Desktop/sebastian/r studio/cheat sheet/boston-housing-logistic.csv.txt")
 
-# RStudio files
-.Rproj.user/
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
+# cambiamos a factor
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
+bh$CLASS <- factor(bh$CLASS, levels = c(0,1))
 
-# knitr and R markdown default cache directories
-*_cache/
-/cache/
+# cargamos una semilla
 
-# Temporary files created by R markdown
-*.utf8.md
-*.knit.md
+set.seed(2018)
 
-# R Environment Variables
-.Renviron
+
+#creamos una particion de datos
+
+t.id <-  createDataPartition(bh$CLASS, p= 0.7 , list = FALSE)
+
+# creamos el modelo
+
+mod <- glm(CLASS ~ . , data = bh[t.id,], family = binomial)
+
+# vemos el modelo
+
+summary(mod)
+
+# buscamos la probabilidad de exito
+
+bh[-t.id,"prob_success"] <- predict(mod, newdata = bh[-t.id,], type = "response")
+
+# creamos nueva variable binomial para las prob > 0.5
+
+bh[-t.id, "pred_50"] <-  ifelse(bh[-t.id, "prob_success"]>=0.5, 1, 0)
+
+# creamos matriz de confusion 
+
+table(bh[-t.id,"CLASS"], bh[-t.id,"pred_50"], dnn = c("actual", "predicho"))
